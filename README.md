@@ -4,6 +4,9 @@ Turn a **second physical keyboard** into a dedicated macro keyboard on Windows 1
 drivers. Your normal keyboard (Keyboard 1) is never touched; every key of the second keyboard
 (Keyboard 2) can type text, paste a snippet, send a shortcut, open a program or a website, run a
 command or your own Python / PowerShell code, or switch profiles and pages.
+Since 1.3.0: **MYTHOS SEQUENCER** (reusable sequences of keys, nested sequences, delays), **MYTHOS MOUSE ENGINE**
+(record, edit and replay the mouse and the keyboard) and **MYTHOS TARGET MEMORY** (teach each key where its action runs:
+a learned position, a screen, a window or a UI element).
 
 This repository only distributes the **released builds**, the install instructions and the changelog.
 The source code is developed in a private repository.
@@ -51,6 +54,10 @@ install, update or uninstall (delete that folder yourself if you want them gone)
 - By default logs contain no typed text and no tokens, and links are reduced to `scheme://host` (typed text is logged only if you switch "log sensitive" on).
 - Tested on Windows 10 Pro 22H2. Windows 11 is expected to work but was not tested.
 - Going back to 1.0.0 is not supported if you use Custom Code keys (back up `%APPDATA%\MythosKeyboardController` first).
+- Since 1.3.0 the configuration is version 5: an older version cannot read it and starts with defaults. Before going back,
+  restore `config.pre-v5.json` (kept by 1.3.0 in `%APPDATA%\MythosKeyboardController`) as `config.json`.
+- **Updates**: run the newer installer (it installs over the old version). The in-app « Mises à jour » screen cannot
+  install anything yet (no signed release manifest is published).
 
 See [CHANGELOG.md](CHANGELOG.md) for what changed in each version and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
 for the open-source components (the full license texts are installed in the `licenses` folder next to the program).

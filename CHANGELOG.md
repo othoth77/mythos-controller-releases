@@ -4,6 +4,285 @@ All notable changes to Mythos Controller. Versions follow `MAJOR.MINOR.PATCH`; e
 git tag `vX.Y.Z` on `main`, and older releases stay available so you can go back
 (see `docs/RELEASE.md`).
 
+## 1.3.0 - 2026-11-20
+
+Everything below up to 1.2.0 is part of 1.3.0 (1.2.0 was never published: users of 1.1.0 get all of it).
+
+### MYTHOS MOUSE ENGINE (`docs/MOUSE_ENGINE.md`)
+- **Recording** of the mouse (movement, left / right / middle / X buttons, double-click, button
+  down/up, drag and drop, vertical and horizontal wheel) and of the keys of the normal keyboards
+  (key down/up, combinations), with high-resolution timestamps; start (3 s countdown), pause,
+  resume, stop, cancel. Mouse input is observed through passive Raw Input, keys through a copy of the
+  records the keyboard backend already receives: no new hook, nothing blocked or delayed. Keyboard 2
+  and every injected key are never recorded; clicks on Mythos Controller itself are left out.
+- A bounded queue and a worker thread (movements thinned, never clicks or keys), a journal file on
+  disk for long recordings, watchdog status (queue, dropped movements, late worker).
+- **Editor**: ordered timeline, add / delete / duplicate / reorder, coordinates, delays, durations,
+  buttons, keys, text; manual mouse and keyboard actions; « Clic à la position de la souris »;
+  playback speed, repetitions, « jusqu'à l'arrêt », pause between repetitions; Test before saving.
+- **Playback**: once, n times or until stopped, pause / resume / stop; every key and mouse button
+  still held is released when playback ends, is stopped or fails. Emergency stop: « ■ Arrêter », the
+  « Arrêter la séquence » key, a physical Échap, or the real mouse thrown into the top-left corner
+  (fail-safe, can be switched off).
+- **Coordinates**: absolute (virtual desktop), relative to a monitor (scaled to its resolution) or
+  to a window's client area (follows moves, optionally resizes); multi-monitor, per-monitor DPI aware
+  (physical pixels on every scaling); conversion between frames in the editor.
+- **Smart Mouse**: Windows UI Automation (through .NET), image search (built-in, Pillow; OpenCV used
+  automatically when installed), waiting for an element, checking that it exists, verifying the
+  target window; ambiguous or weak matches are refused, never guessed.
+- New key actions « Enregistrement souris » and « Action souris » (click, double-click, right or
+  middle click, move, scroll, drag) — the latter at the key's execution target.
+
+### MYTHOS TARGET MEMORY (`docs/TARGET_MEMORY.md`)
+- Targets stored once with stable ids, versions and learning method: **Last Learned Position**,
+  **Specific Window** (follows the window), **Smart Target** (UI Automation id / name / type, image,
+  relative fallback only when allowed); plus **Écran 1**, **Écran 2** (configurable monitors) and
+  **Écran actif**. Learn (countdown, review, name, save), test (the mouse shows where, no click),
+  re-learn, rename, duplicate, options, delete (usages shown, confirmation).
+- **« Cible d'exécution » on every key** of every profile, page and keyboard, whatever its action:
+  Default (unchanged behaviour), one active target and several saved ones, click-to-focus, on/off.
+  One central service resolves, validates and applies targets: input goes to the target window /
+  point, programs and websites open on the target screen, custom code receives `MC_TARGET_*`,
+  recordings play relative to the target. **A target that cannot be validated is never executed.**
+
+### MYTHOS SEQUENCER integration
+- New steps: mouse (click, double-click, right/middle, move, down/up, scroll, drag — at a target, at
+  x, y or at the mouse), keyboard (key, down/up, shortcut, text), recording (× n), wait for a target
+  (timeout; then stop, continue or skip the next step: a condition), and repeat of a sub-sequence
+  (loop). Button steps run with their execution target. Strict order, long actions awaited, one stop
+  reaching every level and the recording being played, errors naming the sequence path and the step.
+
+### Action Hub
+- `.mcsequence` bundles carry recordings (positions only relative to a window or a monitor, window
+  titles removed, typed text through parameters) and targets reduced to non-private identity
+  (program, class, UI Automation id/type): imported targets must be taught on the new PC first;
+  absolute positions become targets to teach. Nothing imported runs by itself.
+- The Action Hub library is part of the main project (`hub-library/`, `tools/hub_sync.py`).
+
+### Compatibility
+- Configuration version 5 (versioned migration from 4: existing data unchanged, the previous file
+  kept as `config.pre-v5.json`); keys without a target are stored exactly as before.
+- Keyboard 1 untouched; Keyboard 2 keys other than Stop / profile / page are ignored while a sequence
+  or a playback runs (never queued).
+
+### Known limitations
+- Windows does not let a normal program send input to, or read UI Automation of, windows running as
+  administrator (UAC) or to the secure desktop; such targets are reported « non valide ».
+- In a Remote Desktop session the mouse follows the remote session; recording a minimised RDP window
+  captures nothing.
+- The in-app updater still needs the release signing key (UPD-1): update with the installer.
+
+### MYTHOS SEQUENCER v2 and NumEnter v6 (PR #10, #11, #15)
+
+### Added
+- **MYTHOS SEQUENCER** (`docs/SEQUENCER.md`): sequences are independent objects stored once
+  (`config.sequences`: id, name, description, ordered steps, version, creation and change dates)
+  and used by reference from keys (« Sequential Actions (Mythos Sequencer) », `run_sequence`) and
+  from other sequences. Steps: a **button** of any page of **any profile** (run in its own context,
+  the active profile never changes), another **sequence** (any depth, reusable everywhere) or a
+  **delay**. No artificial limit on steps or levels (bounds: 64 levels, 10 000 actions and 2 h of
+  delays per press, a 3 h watchdog).
+- **⛓ Sequencer** section: list with content, usages and state; create, change, rename, duplicate,
+  delete (usages shown, explicit confirmation); editor with button picker (profiles → pages →
+  buttons with name, physical key, profile, page, action type), sequence and delay steps, ↑ ↓ ✕,
+  dependencies (« Utilise / Utilisée par »), full preview of the tree, Test of the unsaved draft,
+  Stop.
+- Execution: everything one press would run is checked first (missing, disabled, non-activated
+  code, cycle — also indirect and through keys —, bounds); strict order on one thread; custom code
+  waited for; the first failing step stops the run and is named with its level; one stop reaches
+  every level; never runs while being edited.
+- **Action Hub**: a whole sequence is shared with its dependencies as a `.mcsequence` bundle
+  (integrity per component, permissions, parameters instead of personal values, code never active);
+  import = review then explicit install into a new page; nothing runs.
+- NumEnter v6 (PR #11) and the Sequencer work together: a custom-code step of a sequence gets the
+  key press context (window in front, last terminal).
+
+### Changed
+- The first Sequencer format (`run_keys`, PR #10) is converted on load to a stored sequence; the
+  key keeps its name, colour and page.
+
+### In-app updates and BRIDGE interface (PR #14)
+
+### Added
+- **Settings → Mises à jour** (French / Arabic): installed and latest version, publication date,
+  release notes, included components, availability, download progress, signature and SHA-256
+  verification, result, last successful update, update history; « Vérifier les mises à jour »,
+  « Installer la mise à jour », « Voir les détails », « Historique des mises à jour », « Revenir à la
+  version précédente ». Nothing is checked or installed without a button press (`docs/UPDATES.md`).
+- Update Manager (`src/mkc/update/`):
+  - one official source (`othoth77/mythos-controller-releases`) and a strict signed release
+    manifest `mythos-controller-release/1` (`docs/RELEASE_MANIFEST.md`);
+  - Ed25519 signature verification (pure Python, RFC 8032 vectors, cross-checked with OpenSSL);
+  - size and SHA-256 checks after the download and again right before execution;
+  - downgrade refused; one operation at a time;
+  - no elevation: a per-user installation in a writable folder only;
+  - the previous version is snapshotted and restored automatically when the installer or the first
+    start of the new version fails (`docs/UPDATE_ROLLBACK.md`, `docs/UPDATE_SECURITY.md`).
+- BRIDGE background service integration interface (`src/mkc/bridge_service/`,
+  `docs/BRIDGE_SERVICE.md`): contract `bridge-windows-service/1` (least-privilege account,
+  loopback-only health, no shell arguments), lifecycle with consent, independent updates with
+  rollback, and uninstall that keeps the configuration. It is tested with a simulated service manager.
+  **Not connected to Windows:** BRIDGE publishes no Windows service yet, so the status reads
+  « Non disponible » with the missing deliverables.
+- Release tools: `tools/make_release_manifest.py` and `tools/sign_release_manifest.py` (offline
+  signing; the key is refused inside the repository).
+- Release workflow: installer smoke test of the packaged update helper. An unsigned update is refused
+  before the installer runs; a rollback restores the installation exactly.
+- CI: syntax check of `hub.js` and `updates.js`.
+
+### Not enabled yet (owner decisions, `docs/UPDATE_SECURITY.md`)
+- No release signing key exists, so this build trusts none. Every update check ends with
+  « Authenticité invérifiable » and nothing can be installed from the application until the owner
+  generates the key offline and adds its public half (UPD-1).
+- Releases up to 1.1.0 publish no manifest. Install them manually (UPD-2).
+
+### Mythos Action Hub (PR #4–#9)
+
+### Fixed (branch `fix/numenter-reliability`)
+- **Key code that targets « the terminal » chose the wrong window intermittently.** Custom code
+  now receives the window that was in front **when the key was pressed** and the last terminal
+  window the user brought to the front (`MKC_PRESS_FOREGROUND_HWND`, `MKC_LAST_TERMINAL_HWND`,
+  `MKC_LAST_TERMINAL_AGE_MS`; a foreground event hook, no polling). Before, the code looked for it
+  itself 1–3 s later (PowerShell start-up), when Remote Desktop, a popup or another program could
+  already be in front, and guessed « the last terminal » from the window order.
+- A key pressed again while its code is still running was ignored without a trace; it is now
+  logged (WARNING) so a press that « did nothing » can be explained.
+- **NumEnter v6** (`tools/keys/numenter/`): the « copier » key script, now maintained and tested in
+  the repository. Target from the press context (never a guess between several terminals), Windows
+  Terminal tab by title, SSH tunnels skipped; waits until the command is over (prompt at the cursor,
+  no program still attached to a local shell, screen quiet), consistent read of the buffer; prompts
+  found after `cd`, a venv or with text typed after the prompt; history read without blocking
+  PSReadLine; non-blocking Win32 clipboard with bounded retries (the OLE clipboard waited as long
+  as another program held it), exact read-back, previous text restored and reported; refusal popup
+  that never keeps the run alive; precise error codes and timings in `numenter.log` (never the
+  copied text). `tools/keys/numenter/apply.py` installs it into a key.
+
+### Added
+- **Mythos Action Hub** (`docs/ACTION_HUB.md`): the « ⬡ Hub » button opens Discover, Incoming, My
+  nominations, Library, Installed, Updates and History. Actions are shared through a public
+  GitHub-backed library (read without an account or token) or a shared folder; proposing one opens
+  a prefilled GitHub issue in the browser. Reviewing and installing never run anything and never
+  change a key; installed code is deactivated; giving an action to a key asks before replacing a
+  setting. Local customisation keeps the original; updates show the differences and are accepted
+  or refused by the user; the previous version is kept for rollback. Maintainer tool:
+  `tools/hub_publish.py`.
+- Settings → Hub: approval mode (show and let me decide / only on request / off), library source.
+- **⬡ Nominate to Action Hub** in the key editor (simple and advanced) for a configured key: a
+  read-only preview of the shared action, then name, description, category and tags, and the
+  existing nomination workflow (check, export, prefilled GitHub issue). Only the key's action is
+  shared; user folders in program paths become `%USERPROFILE%` / `%APPDATA%` / `%LOCALAPPDATA%`,
+  and a personal folder left in a text, arguments or code blocks the nomination. A key that
+  received a Hub action shows « Mythos Action Hub : id version ». « Mes propositions » shows the
+  key a nomination came from (kept on this PC only).
+
+- **Simple « ⬡ Proposer à Action Hub »** (replaces the long form): name (prefilled),
+  optional description (written automatically when empty), category (preselected), a live
+  preview, then « Confirmer la proposition ». Author, id, version, licence, summary,
+  compatibility and technical fields are generated; the advanced options (and « Vérifier ») are
+  optional. **Fixes « manifest.author.name: required »**: the author is taken from the advanced
+  field, Settings → Hub, the GitHub account, the Git user name, else « Mythos Controller User »;
+  the GitHub account is optional and an invalid one never blocks.
+- **Parameters for PC-specific values** (package format 2): user folders, `user@server`, IP
+  addresses, e-mail addresses and the Windows account name found in texts, arguments or code are
+  replaced by `{{mc:…}}` parameters (listed in the preview, each can be kept). Recipients fill
+  their own values in « Installées » → « Paramètres de ce PC » (kept on their PC only) before
+  giving the action to a key. Packages without parameters stay format 1, unchanged.
+- Long actions: the package travels compressed inside the GitHub issue, or the full issue text is
+  copied to the clipboard to paste into the opened page; attaching the file is only needed for a
+  package larger than a GitHub issue.
+
+### Fixed
+- Secret scan: `API_TOKEN = '…'`, `db_password_prod = '…'` and similar prefixed names are now
+  refused; a marker named « token » that does not look like one (`TOKEN = '[MKC:key]'`) no longer
+  blocks a nomination.
+
+### Configuration
+- New optional `settings.hub_*` keys with safe defaults. No configuration version change, no
+  migration: older versions ignore them. Hub data lives in `%APPDATA%\MythosKeyboardController\hub\`.
+
+### Known limitations
+- The public library repository does not exist yet; packages are not signed; custom code is not
+  sandboxed (it is deactivated until the user activates it).
+
+## 1.2.0 - 2026-10-27
+
+Standard profile, Keyboard 2 profile shortcuts, action sequences, copy between profiles, and the
+fixes of the 2026-10-27 audit (details and evidence in `docs/DEVLOG.md`).
+
+### Added
+- **Standard profile** (always first, ⌨): the normal keyboard. While it is active Mythos Controller
+  runs nothing; any other profile turns Keyboard 2 into the macro keyboard. It replaces the ON/OFF
+  switch (a key mapped to *Toggle macros* switches Standard ↔ last profile). The first start adds it
+  and keeps every profile, page and key; a configuration saved OFF starts in Standard. The file as it
+  was before that first start is kept as `config.pre-1.2.0.json` next to `config.json`.
+- **Profile shortcuts typed on Keyboard 2** (Settings → Raccourcis de profils): modifier + key, both
+  on Keyboard 2 (e.g. Ctrl+F1 → Claude), from any window, also to leave Standard. Nothing is
+  registered with Windows: Keyboard 1 keeps every combination. Defaults Ctrl+Alt+Shift+1..3 are
+  proposed once for the first three macro profiles.
+- **Profile line and page line** on the main screen; **drag and drop of a key onto another profile**
+  (rest on the profile to show it); **multiple selection** (click, Shift+click, select all) and
+  « Copier la sélection… » to copy several keys to another profile/page, all or nothing, with the full
+  correspondence confirmed first.
+- **Action sequences**: ordered steps (shortcut, key, write text, paste text, open program), each
+  with its own delay; a *Record Shortcut* button per shortcut step. Limits: 50 steps, 60 s per
+  delay, 120 s in total.
+- **Printed sheet**: A4 landscape, action names under the keys, Arabic names fitted after the fonts
+  load, Ctrl+P opens the preview; the action's type (Python/PowerShell) is never printed.
+- **« Changer le clavier principal »** (Settings → Keyboard): every connected keyboard is shown with
+  its role (clavier principal/contrôleur or clavier normal), **Utiliser comme clavier principal**,
+  **Aucun contrôleur**, and **↶ Revenir au clavier précédent** (the previous controller is kept in
+  the configuration as `previous_device`). Exactly one controller at a time; changing it never
+  touches profiles, pages or keys; a keyboard without VID/PID is recognised by its exact path.
+- **Development modes** without a build: `tools\run-dev.ps1` (`Test` = isolated copy, `--dry-run`;
+  `Interactive` = isolated copy with real execution; `Real`), `--isolated` refuses the real folder,
+  `tools\snapshot-dev.ps1` dated snapshots, `docs/DEVLOG.md`.
+- Start-up check for the **WebView2 Runtime**: a clear message with the download link instead of a
+  blank window (`--headless` skips it).
+- `constraints.txt`: the exact package versions a release is built with (local build and CI).
+
+### Changed
+- **One copy at a time, whatever the copy**: besides the lock per installation folder, a lock per
+  settings folder (an installed copy and a portable or source copy would overwrite each other's
+  `config.json`) and one lock per session for the keyboard hook (two hooks ran every Keyboard 2
+  action twice). `--dry-run` takes no hook lock. The second copy says which one is running.
+- **The Windows-key block is withdrawn.** The unreleased development version blocked the Win key with
+  a low-level hook (`WH_KEYBOARD_LL`), which cannot tell keyboards apart and therefore acted on
+  Keyboard 1 too, against the rule that Keyboard 1 is never touched. The feature, its setting and its
+  Settings switch are removed; Mythos Controller installs no low-level keyboard hook. A
+  `block_windows_key` value in an existing `config.json` is ignored and dropped on load. Win
+  shortcuts are still refused as profile shortcuts (Windows reserves the Windows key).
+- `--dry-run` observes only: keys are delivered and nothing runs, not even a profile switch (the
+  released 1.1.0 ran the action AND delivered the key: "0" + "ok" = "0ok").
+- Saves caused by a profile/page switch rotate no backup (20 switches pushed every real edit out of
+  the backup history).
+- "Start with Windows" is reported enabled only when the entry points to this very copy; a stale
+  entry from a moved or removed copy shows as disabled and is rewritten when re-enabled.
+- The tray tooltip names the Standard profile instead of ON/OFF.
+
+### Fixed
+- A Win key *up* whose *down* was not swallowed is passed, so Windows can never be left with the
+  Win key stuck down (every later key acting as Win+key) when the block is on.
+- A Keyboard 2 modifier whose release was lost (keyboard unplugged, release in an elevated window)
+  no longer turns a bare key into the profile shortcut forever: it is forgotten after 2 s.
+- A profile created by the user under the name « Standard » in 1.1.x keeps its keys (renamed id
+  `standard_user`); the application's Standard profile is added separately.
+- Deleting a profile no longer edits the shortcut table in place while the input thread may read it;
+  an unexpected error while deciding a Keyboard 2 key keeps its down and up consistent (swallowed).
+- "Run command" shown in a console keeps a quoted path with spaces (`"C:\Program Files\..."`).
+- The installed-application picker reads shortcut paths in UTF-8: shortcuts under a folder or a user
+  name with an accent were silently dropped.
+- Hook window accepts its message from normal applications when Mythos Controller runs elevated
+  (UIPI); the installer starts the program with the user's own rights (`runasoriginaluser`).
+
+### Compatibility
+- `config.json` version stays 4: the new keys (`profile_hotkeys`, the `standard` profile, sequence
+  step `program` and `delay_after_ms`) are optional. 1.1.x opens a 1.2.0 file (Standard active is
+  written as OFF) but drops `profile_hotkeys` on its next save and refuses a sequence that contains a `program` step (it then starts from defaults
+  and keeps the file as `config.invalid-*.json`). To go back to 1.1.x, restore `config.pre-1.2.0.json`
+  or a backup first (`docs/RELEASE.md`).
+- Tested on Windows 10 Pro 22H2 (build 19045) with the source version; the 1.2.0 installer and ZIP
+  are built and smoke-tested by the release workflow (`docs/RELEASE.md`).
+
 ## 1.1.0 - 2026-10-12
 
 First stable release distributed as an installer and a ZIP.
