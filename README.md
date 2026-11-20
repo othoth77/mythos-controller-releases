@@ -7,6 +7,8 @@ command or your own Python / PowerShell code, or switch profiles and pages.
 Since 1.3.0: **MYTHOS SEQUENCER** (reusable sequences of keys, nested sequences, delays), **MYTHOS MOUSE ENGINE**
 (record, edit and replay the mouse and the keyboard) and **MYTHOS TARGET MEMORY** (teach each key where its action runs:
 a learned position, a screen, a window or a UI element).
+Since 1.4.0: **MYTHOS PROFILE SWITCHER** (optional, Settings → Profile Switcher): one small icon per profile near the
+Windows clock, one click activates that profile.
 
 This repository only distributes the **released builds**, the install instructions and the changelog.
 The source code is developed in a private repository.

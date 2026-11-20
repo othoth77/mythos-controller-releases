@@ -4,6 +4,32 @@ All notable changes to Mythos Controller. Versions follow `MAJOR.MINOR.PATCH`; e
 git tag `vX.Y.Z` on `main`, and older releases stay available so you can go back
 (see `docs/RELEASE.md`).
 
+## 1.4.0 - 2026-11-20
+
+### MYTHOS PROFILE SWITCHER (`docs/PROFILE_SWITCHER.md`)
+- Optional (off by default): one compact icon per profile in the Windows notification area, near the
+  clock. One click activates the profile at once, without opening the window and without
+  confirmation; the active profile is filled with its colour and outlined; the tooltip gives the
+  full name.
+- Settings → **Profile Switcher**: enable / disable, show / hide in the notification area, label
+  (profile number, short name or the start of the name), visible profiles (all; only the chosen
+  ones — new profiles hidden; all except the chosen ones — new profiles shown). Kept across restarts
+  of Mythos Controller and of Windows.
+- Always in step with the main window: active profile, profile creation, renaming, deletion,
+  colours and settings; a click on a profile just deleted or hidden does nothing.
+- Safe switching: a profile chosen from these icons never interrupts a running sequence, mouse
+  playback or recording (they never depend on the active profile); the new profile applies to the
+  next key presses.
+- One hidden window and one thread, no keyboard hook; icons added again when Explorer restarts;
+  removed when Mythos Controller exits; if the notification area is unavailable the application
+  continues and Settings says so.
+
+### Known limitations
+- Windows decides where new notification icons go: on Windows 10/11 they may land in « Afficher les
+  icônes cachées » (^) — drag them onto the taskbar once to keep them next to the clock.
+- A notification icon is 16–32 pixels: « Nom » shows the first letters, the full name is in the
+  tooltip.
+
 ## 1.3.0 - 2026-11-20
 
 Everything below up to 1.2.0 is part of 1.3.0 (1.2.0 was never published: users of 1.1.0 get all of it).
