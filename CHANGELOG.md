@@ -4,6 +4,23 @@ All notable changes to Mythos Controller. Versions follow `MAJOR.MINOR.PATCH`; e
 git tag `vX.Y.Z` on `main`, and older releases stay available so you can go back
 (see `docs/RELEASE.md`).
 
+## 1.4.1 - 2026-11-21
+
+### Fixed
+- **Image targets (MYTHOS MOUSE ENGINE / TARGET MEMORY)**: an image that appears twice on screen is
+  now always refused as ambiguous, including at its expected place (it used to click one of them).
+  An image present only once is found at every position: the search no longer misses copies that
+  do not fall on the coarse search grid (it now tries four grid offsets and several candidates per
+  offset, then refines each one at full resolution).
+- **Profile Switcher icons disappearing**: the icon window ignores close requests that do not come
+  from Mythos Controller. If its thread ends anyway, the switcher notices within a second and
+  recreates the icons. It logs the reason as a warning and does this at most 5 times per 10 minutes;
+  Settings then shows the number of restarts.
+- **Window class reuse**: the Profile Switcher and the mouse recorder each register their hidden
+  window class once per process, with one dispatcher. Before, a second start could call the
+  procedure of a stopped instance. This made the icons stop responding after a disable/enable, and
+  the recorder could crash with an access violation.
+
 ## 1.4.0 - 2026-11-20
 
 ### MYTHOS PROFILE SWITCHER (`docs/PROFILE_SWITCHER.md`)
