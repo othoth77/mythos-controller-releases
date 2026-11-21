@@ -4,6 +4,32 @@ All notable changes to Mythos Controller. Versions follow `MAJOR.MINOR.PATCH`; e
 git tag `vX.Y.Z` on `main`, and older releases stay available so you can go back
 (see `docs/RELEASE.md`).
 
+## 1.6.0 - 2026-11-21
+
+### MYTHOS INTERRUPT (`docs/INTERRUPT.md`)
+- New default rule: while an action, a sequence (nested ones included), a mouse playback or a test
+  is executing, manual input stops it at once.
+  - Manual input is: the real mouse moved, a click, the wheel, or a key pressed on any keyboard.
+  - A remaining delay is not waited for, the steps that were left never run, and nothing resumes.
+  - Keys and mouse buttons still held by the execution are released.
+- Another Mythos action started meanwhile stops the running one, then runs. The two never overlap.
+  Before, the new key was ignored while a sequence ran.
+- Only real hardware counts. The keys, mouse moves and clicks Mythos Controller generates never
+  interrupt the execution that sends them. No hook is added and nothing is blocked.
+- Not counted: key and button releases, the auto-repeat of a held key, a mouse at rest, mouse
+  movement in the first instants of an execution, and anything you do while recording.
+- An interruption is reported as « interrompu » with its cause, not as an error.
+- Settings → **MYTHOS INTERRUPT**: on by default, also for existing configurations. Each cause can
+  be turned off (mouse movement, click or wheel, keyboard, another action).
+- Scripts launched by a custom-code key are not stopped by default; an option turns that on. A code
+  step inside a sequence always stops with the sequence.
+- One central service (`src/mkc/core/interrupt.py`) tracks everything that executes; sequences,
+  playbacks, key actions and tests all use it.
+
+### Changed
+- The recorder and MYTHOS INTERRUPT share one mouse Raw Input registration. It is active only while
+  a recording or an execution runs.
+
 ## 1.5.0 - 2026-11-21
 
 ### MYTHOS PROFILE SWITCHER: floating toolbar (`docs/PROFILE_SWITCHER.md`)

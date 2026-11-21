@@ -9,6 +9,8 @@ Since 1.3.0: **MYTHOS SEQUENCER** (reusable sequences of keys, nested sequences,
 a learned position, a screen, a window or a UI element).
 Since 1.5.0: **MYTHOS PROFILE SWITCHER** (optional, Settings → Profile Switcher): a small floating toolbar of profile
 buttons just above the taskbar next to the Windows clock; one click activates that profile, the toolbar stays.
+Since 1.6.0: **MYTHOS INTERRUPT** (on by default): moving the real mouse, clicking, pressing a key or starting
+another action stops the running action, sequence or mouse playback at once.
 1.4.1 (bug fixes): image targets refuse an image shown twice on screen and find a single image wherever it is;
 Profile Switcher icons recover by themselves if their window stops.
 
