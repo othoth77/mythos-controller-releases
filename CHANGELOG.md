@@ -4,6 +4,29 @@ All notable changes to Mythos Controller. Versions follow `MAJOR.MINOR.PATCH`; e
 git tag `vX.Y.Z` on `main`, and older releases stay available so you can go back
 (see `docs/RELEASE.md`).
 
+## 1.5.0 - 2026-11-21
+
+### MYTHOS PROFILE SWITCHER: floating toolbar (`docs/PROFILE_SWITCHER.md`)
+- The switcher is now a small borderless toolbar of mini profile buttons, just above the Windows
+  taskbar next to the clock. It replaces the 1.4 notification-area icons: nothing in the taskbar,
+  the notification area or the hidden-icons menu (^), no menu, no popup.
+- One click on a button activates the profile at once. The toolbar stays on screen, also when
+  Mythos Controller is minimized, and never takes the keyboard focus. The active profile is filled
+  with its colour and outlined; a tooltip gives the full name.
+- Place: by default next to the clock, on the bottom-right corner (top-right with a top taskbar,
+  bottom-left with a left one).
+  - Drag the grip (⋮⋮) to move it. It is kept inside the screen's work area, so it never covers the
+    taskbar, the clock or the system icons, also with an auto-hidden taskbar.
+  - The screen and the place are saved and restored after a restart.
+- Monitor 1 / Monitor 2: choose the screen in Settings → Profile Switcher, or drag the toolbar onto
+  it. If that screen is disconnected, the toolbar goes to the main screen.
+  - « Réinitialiser la position » brings it back next to the clock.
+  - It follows each screen's scale (100–200 %).
+- Still optional and off by default. Existing settings (on/off, label, visible profiles) are kept;
+  « Afficher dans la zone de notification » becomes « Afficher la barre ». New settings
+  `profile_switcher_monitor` and `profile_switcher_offset` are empty by default, meaning the default
+  place.
+
 ## 1.4.1 - 2026-11-21
 
 ### Fixed

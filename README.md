@@ -7,8 +7,8 @@ command or your own Python / PowerShell code, or switch profiles and pages.
 Since 1.3.0: **MYTHOS SEQUENCER** (reusable sequences of keys, nested sequences, delays), **MYTHOS MOUSE ENGINE**
 (record, edit and replay the mouse and the keyboard) and **MYTHOS TARGET MEMORY** (teach each key where its action runs:
 a learned position, a screen, a window or a UI element).
-Since 1.4.0: **MYTHOS PROFILE SWITCHER** (optional, Settings → Profile Switcher): one small icon per profile near the
-Windows clock, one click activates that profile.
+Since 1.5.0: **MYTHOS PROFILE SWITCHER** (optional, Settings → Profile Switcher): a small floating toolbar of profile
+buttons just above the taskbar next to the Windows clock; one click activates that profile, the toolbar stays.
 1.4.1 (bug fixes): image targets refuse an image shown twice on screen and find a single image wherever it is;
 Profile Switcher icons recover by themselves if their window stops.
 
