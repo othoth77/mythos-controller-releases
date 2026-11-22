@@ -4,6 +4,71 @@ All notable changes to Mythos Controller. Versions follow `MAJOR.MINOR.PATCH`; e
 git tag `vX.Y.Z` on `main`, and older releases stay available so you can go back
 (see `docs/RELEASE.md`).
 
+## 1.8.0 - 2026-11-22
+
+### MYTHOS PROFILE SWITCHER: image buttons (`docs/PROFILE_SWITCHER.md`)
+- The first three buttons of the toolbar (Profile 1, Profile 2, Profile 3) are now **image buttons**.
+  A click still activates the profile at once, through the same switch as before. The active
+  profile is ringed in white and shown at full brightness; the others are dimmed.
+- **Button 0** is the Standard profile: one click and Keyboard 2 is a normal keyboard again (the
+  former OFF); a numbered button turns the macro keyboard back on. It is shown when the Standard
+  profile is shown on the toolbar, always first, and does not take one of the three numbered places.
+- The Profile Switcher has its own picture: on the grip of the toolbar and in the title of
+  Settings → Profile Switcher. Other icons of the application are unchanged.
+- Settings → Profile Switcher shows the same three image buttons (one click = that profile) and a
+  new option « Boutons image pour les trois premiers boutons » (`profile_switcher_images`, on by
+  default). Off: the text labels of 1.5.0. Buttons after the third always keep their text label.
+- The pictures are in the repository, in `assets/profile_buttons/` (`profile_0.png`,
+  `profile_1.png`, `profile_2.png`, `profile_3.png`, `profile_switcher.png`), and are packaged with every build:
+  no path of one computer, no network. The five files are placeholders; replace a file with a PNG
+  of the same name to change a picture, no code changes (`assets/profile_buttons/README.md`).
+- A missing or unreadable picture is never an error: that button shows its text label and keeps
+  working.
+- Nothing else changes: settings, profiles, mappings, macros, the place of the toolbar and the
+  keyboards are untouched. The toolbar itself stays off until you enable it.
+
+### Fixed: Keyboard 2 profile shortcuts with the modifier kept down (Standard profile)
+- With the Standard profile active, keeping Ctrl down on Keyboard 2 and pressing several keys one
+  after the other (Ctrl held, F1, then F2…) switched nothing once two seconds had passed: the
+  application forgot that Ctrl was down, because a keyboard repeats only the last key pressed.
+  It now checks that the key is really released before forgetting it. Quick, separate shortcuts
+  already worked and are unchanged.
+- A release that was really lost is still forgotten after two seconds, so a bare key never becomes
+  a shortcut. Keyboard 1 is not concerned: its Ctrl never counts for a Keyboard 2 shortcut.
+
+### Linux 1.8.0 (same features, `linux/docs/PARITY.md`)
+- The Linux toolbar shows the same image buttons: button 0 (Standard, like OFF), Profile 1, 2, 3 and
+  the Profile Switcher picture on the grip. The pictures are in the Linux archive and are read
+  without any extra library (no Pillow needed); a picture that cannot be read leaves the text label.
+- The held-modifier fix works for a USB Keyboard 2 plugged into the Linux machine: its key state is
+  read from the keyboard itself. Over Remote Desktop the codes carry no key state: press the
+  shortcut in one go there.
+- Windows and Linux are released together from the same commit: `v1.8.0` and `linux-v1.8.0`.
+
+## 1.7.0 - 2026-11-21
+
+### In-app updates are enabled (`docs/UPDATES.md`)
+- Settings → **Mises à jour** can now check, verify and install a new release. This is the first
+  version that trusts a release signing key, so:
+  - 1.6.0 and older still update **once** with the installer, to reach 1.7.0 or newer;
+  - from 1.7.0 on, later releases can be installed from the application.
+- **Automatic check, manual install.** After start-up and then once a day, Mythos Controller reads
+  the signed manifest of the latest official release. If a newer version exists it shows a notice
+  with « Voir la mise à jour ». Nothing is downloaded or installed until you press « Installer la
+  mise à jour ». The automatic check can be turned off in the same tab (`updates_auto_check`).
+- What an update does is unchanged: signature and SHA-256 checked, a copy of the current version
+  kept, per-user installer, automatic return to the previous version if the new one does not start.
+  Settings, profiles, sequences and mouse recordings are not touched.
+- Each release now publishes `release-manifest.json` and `release-manifest.json.sig`.
+
+### MYTHOS MOUSE ENGINE
+- The recordings list and the end-of-recording message say what a recording contains: clicks,
+  double clicks, drags, wheel turns, held buttons, keys, movements, and its duration.
+- New real-desktop test: a recorded double click, wait, click and drag are replayed on a real
+  window in the same order, at the same places, with the same waits; speed and repeat are checked
+  too.
+- Playback stops at once on manual input (MYTHOS INTERRUPT, 1.6.0); the test message says so.
+
 ## 1.6.0 - 2026-11-21
 
 ### MYTHOS INTERRUPT (`docs/INTERRUPT.md`)

@@ -11,6 +11,10 @@ Since 1.5.0: **MYTHOS PROFILE SWITCHER** (optional, Settings → Profile Switche
 buttons just above the taskbar next to the Windows clock; one click activates that profile, the toolbar stays.
 Since 1.6.0: **MYTHOS INTERRUPT** (on by default): moving the real mouse, clicking, pressing a key or starting
 another action stops the running action, sequence or mouse playback at once.
+Since 1.7.0: **updates from the application** (Settings → Mises à jour): a daily check, a notice when a newer release
+exists, and a verified install (signature and SHA-256) that keeps your current version to come back to.
+Since 1.8.0: **image buttons** on the Profile Switcher toolbar: Profile 1, 2, 3 show a picture, the active one is ringed in
+white, and **button 0** is the Standard profile (Keyboard 2 as a normal keyboard, like OFF).
 1.4.1 (bug fixes): image targets refuse an image shown twice on screen and find a single image wherever it is;
 Profile Switcher icons recover by themselves if their window stops.
 
